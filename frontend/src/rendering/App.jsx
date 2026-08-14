@@ -8,6 +8,7 @@ import Checkbox from "../components/ui/Checkbox";
 function App() {
 	const [recipes, setRecipes] = useState([]);
 	const [ingredients, setIngredients] = useState([]);
+	const [selectedIngredients, setSelectedIngredients] = useState([]);
 
 	useEffect(() => {
 		const loadRecipes = async () => {
@@ -44,6 +45,18 @@ function App() {
 		categorisedIngredients[category].sort((a, b) => a.name.localeCompare(b.name));
 	});
 
+	// Checks if the checked/unchecked ingredient is in the current list or not and will add/remove it from the list accordingly via filtering the id. 
+	const handleIngredientToggle = (ingredient, isChecked) => {
+		setSelectedIngredients((prevSelectedIngredients) => {
+			const nextSelectedIngredients = isChecked
+				? [...prevSelectedIngredients, ingredient]
+				: prevSelectedIngredients.filter((selectedIngredient) => selectedIngredient.id !== ingredient.id);
+
+			console.log("Selected ingredients:", nextSelectedIngredients);
+			return nextSelectedIngredients;
+		});
+	};
+
 	const ingredientsIntoCheckboxes = (ingredient) => {
 		return (
 			<div key={ingredient.id} className="w-full">
@@ -52,6 +65,9 @@ function App() {
 					label={ingredient.name}
 					isDefaultChecked={false}
 					isDisabled={false}
+					onChange = {
+						(event) => handleIngredientToggle(ingredient, event.target.checked)
+					}
 				/>
 			</div>
 		)
@@ -68,6 +84,10 @@ function App() {
 		)
 	}
 
+	const handleSubmit = () => {
+		console.log("Form submitted");
+	} 
+
 	return (
 		// <div>
 		// 	<h1 class="text-3xl font-bold underline">
@@ -80,9 +100,11 @@ function App() {
 		// 		))}
 		// 	</div>
 		// </div>
-		<div>
-			{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
-		</div>
+		<form onSubmit={handleSubmit}>
+			<div>
+				{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
+			</div>
+		</form>
 
 
 	)
