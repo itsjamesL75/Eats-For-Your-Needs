@@ -2,6 +2,7 @@
 import { useState, useEffect } from "react";
 import findItemList from "../utils/findItemList";
 import RecipeCard from "../components/ui/RecipeCard";
+import Checkbox from "../components/ui/Checkbox";
 
 
 function App() {
@@ -31,6 +32,42 @@ function App() {
 		loadIngredients();
 	}, []);
 
+	const categorisedIngredients = ingredients.reduce((acc, ingredient) => {
+		if (!acc[ingredient.category]) {
+			acc[ingredient.category] = [];
+		}
+		acc[ingredient.category].push(ingredient);
+		return acc;
+	}, {});
+
+	Object.keys(categorisedIngredients).forEach(category => {
+		categorisedIngredients[category].sort((a, b) => a.name.localeCompare(b.name));
+	});
+
+	const ingredientsIntoCheckboxes = (ingredient) => {
+		return (
+			<div key={ingredient.id} className="w-full">
+				<Checkbox 
+					id={ingredient.id}
+					label={ingredient.name}
+					isDefaultChecked={false}
+					isDisabled={false}
+				/>
+			</div>
+		)
+	}
+
+	const categoriesIntoLists = (category) => {
+		return (
+			<div key={category} className="mb-6">
+				<h3 className="text-xl font-bold">{category}</h3>
+				<div className="mt-2 flex flex-col gap-2">
+					{categorisedIngredients[category].map(ingredientsIntoCheckboxes)}
+				</div>
+			</div>
+		)
+	}
+
 	return (
 		// <div>
 		// 	<h1 class="text-3xl font-bold underline">
@@ -44,13 +81,10 @@ function App() {
 		// 	</div>
 		// </div>
 		<div>
-			{ingredients.map((ingredient) => (
-				<div key={ingredient.id}>
-					<h2>{ingredient.name}</h2>
-					<p>Category: {ingredient.category}</p>
-				</div>
-			))}
+			{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
 		</div>
+
+
 	)
 }
 

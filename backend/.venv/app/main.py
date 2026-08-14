@@ -388,7 +388,7 @@ ingredients = [
     {
         "id": 63,
         "name": "Pork shoulder",
-        "category": "Meat"
+        "category": "Meats"
     },
     {
         "id": 64,
