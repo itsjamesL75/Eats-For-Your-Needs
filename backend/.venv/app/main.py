@@ -1,4 +1,4 @@
-from fastapi import FastAPI
+from fastapi import FastAPI, HTTPException
 from fastapi.middleware.cors import CORSMiddleware
 
 app = FastAPI()
@@ -417,15 +417,37 @@ ingredients = [
     },
 ]
 
+def recipe_contains_ingredient(recipe, ingredient):
+    for item in recipe["ingredients"]:
+        if item.lower() == ingredient.lower():
+            return True
+    return False
+
+
 @app.get("/")
 def root():
     return {"message": "Recipe API is running!"}
 
 
 @app.get("/recipes")
-def get_recipes():
-    return recipes
+def get_recipes(ingredient: str | None = None):
+    if ingredient is None:
+        return recipes
+
+    filtered = [
+        recipe for recipe in recipes if recipe_contains_ingredient(recipe, ingredient)
+    ]
+    return filtered
 
 @app.get("/ingredients")
 def get_ingredients():
     return ingredients
+
+@app.get("/recipes/{recipe_id}")
+def get_recipe(recipe_id: int):
+    for recipe in recipes:
+        if recipe["id"] == recipe_id:
+            return recipe
+        else:
+            raise HTTPException(status_code=404, detail="Recipe not found")
+

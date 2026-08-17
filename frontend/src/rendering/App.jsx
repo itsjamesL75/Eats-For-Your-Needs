@@ -105,8 +105,6 @@ function App() {
 				{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
 			</div>
 		</form>
-
-
 	)
 }
 
