@@ -10,6 +10,7 @@ function App() {
 	const [ingredients, setIngredients] = useState([]);
 	const [selectedIngredients, setSelectedIngredients] = useState([]);
 	const [selectedMode, setSelectedMode] = useState("all");
+	const [maxMissing, setMaxMissing] = useState(1);
 
 	useEffect(() => {
 		const loadRecipes = async () => {
@@ -55,7 +56,7 @@ function App() {
 					body: JSON.stringify({
 						ingredients: selectedIngredients.map((ingredient) => ingredient.name),
 						mode: selectedMode,
-						max_missing: selectedMode === "best" ? 1 : 0,
+						max_missing: selectedMode === "best" ? maxMissing : 0,
 					}),
 				});
 
@@ -71,7 +72,7 @@ function App() {
 		};
 
 		fetchMatchingRecipes();
-	}, [recipes, selectedIngredients, selectedMode]);
+	}, [recipes, selectedIngredients, selectedMode, maxMissing]);
 
 	const categorisedIngredients = ingredients.reduce((acc, ingredient) => {
 		if (!acc[ingredient.category]) {
@@ -124,20 +125,59 @@ function App() {
 		event.preventDefault();
 	};
 
+	const handleModeChange = (event) => {
+		const nextMode = event.target.value;
+
+		if (nextMode === "best") {
+			setMaxMissing(1);
+		}
+
+		setSelectedMode(nextMode);
+	};
+
+	const handleMaxMissingChange = (event) => {
+		const nextMaxMissing = Number(event.target.value);
+
+		if (nextMaxMissing === 0) {
+			setSelectedMode("all");
+			setMaxMissing(1);
+			return;
+		}
+
+		setMaxMissing(nextMaxMissing);
+	};
+
 	return (
 		<form onSubmit={handleSubmit}>
-			<div className="mb-6">
+			<div className="mb-6 flex items-center gap-4">
 				<label htmlFor="response-mode" className="mr-3 font-semibold">Response mode:</label>
 				<select
 					id="response-mode"
 					value={selectedMode}
-					onChange={(event) => setSelectedMode(event.target.value)}
+					onChange={handleModeChange}
 					className="rounded border border-gray-300 px-2 py-1"
 				>
 					<option value="all">all</option>
 					<option value="any">any</option>
 					<option value="best">best</option>
 				</select>
+
+				{selectedMode === "best" && (
+					<>
+						<label htmlFor="max-missing" className="font-semibold">Max missing:</label>
+						<select
+							id="max-missing"
+							value={maxMissing}
+							onChange={handleMaxMissingChange}
+							className="rounded border border-gray-300 px-2 py-1"
+						>
+							<option value={0}>0</option>
+							<option value={1}>1</option>
+							<option value={2}>2</option>
+							<option value={3}>3</option>
+						</select>
+					</>
+				)}
 			</div>
 
 			<div>
