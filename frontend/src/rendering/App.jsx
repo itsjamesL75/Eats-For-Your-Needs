@@ -4,9 +4,9 @@ import findItemList from "../utils/findItemList";
 import RecipeCard from "../components/ui/RecipeCard";
 import Checkbox from "../components/ui/Checkbox";
 
-
 function App() {
 	const [recipes, setRecipes] = useState([]);
+	const [displayedRecipes, setDisplayedRecipes] = useState([]);
 	const [ingredients, setIngredients] = useState([]);
 	const [selectedIngredients, setSelectedIngredients] = useState([]);
 
@@ -15,6 +15,7 @@ function App() {
 			try {
 				const data = await findItemList("recipes");
 				setRecipes(data);
+				setDisplayedRecipes(data);
 			} catch (error) {
 				console.error("Error fetching recipes:", error);
 			}
@@ -33,6 +34,44 @@ function App() {
 		loadIngredients();
 	}, []);
 
+	useEffect(() => {
+		const fetchMatchingRecipes = async () => {
+			if (!recipes.length) {
+				return;
+			}
+
+			if (selectedIngredients.length === 0) {
+				setDisplayedRecipes(recipes);
+				return;
+			}
+
+			try {
+				const response = await fetch("http://localhost:8000/recipes/filter", {
+					method: "POST",
+					headers: {
+						"Content-Type": "application/json",
+					},
+					body: JSON.stringify({
+						ingredients: selectedIngredients.map((ingredient) => ingredient.name),
+						mode: "all",
+						max_missing: 0,
+					}),
+				});
+
+				if (!response.ok) {
+					throw new Error(`HTTP error! status: ${response.status}`);
+				}
+
+				const data = await response.json();
+				setDisplayedRecipes(data);
+			} catch (error) {
+				console.error("Error fetching filtered recipes:", error);
+			}
+		};
+
+		fetchMatchingRecipes();
+	}, [recipes, selectedIngredients]);
+
 	const categorisedIngredients = ingredients.reduce((acc, ingredient) => {
 		if (!acc[ingredient.category]) {
 			acc[ingredient.category] = [];
@@ -41,7 +80,7 @@ function App() {
 		return acc;
 	}, {});
 
-	Object.keys(categorisedIngredients).forEach(category => {
+	Object.keys(categorisedIngredients).forEach((category) => {
 		categorisedIngredients[category].sort((a, b) => a.name.localeCompare(b.name));
 	});
 
@@ -57,55 +96,46 @@ function App() {
 		});
 	};
 
-	const ingredientsIntoCheckboxes = (ingredient) => {
-		return (
-			<div key={ingredient.id} className="w-full">
-				<Checkbox 
-					id={ingredient.id}
-					label={ingredient.name}
-					isDefaultChecked={false}
-					isDisabled={false}
-					onChange = {
-						(event) => handleIngredientToggle(ingredient, event.target.checked)
-					}
-				/>
-			</div>
-		)
-	}
+	const ingredientsIntoCheckboxes = (ingredient) => (
+		<div key={ingredient.id} className="w-full">
+			<Checkbox 
+				id={ingredient.id}
+				label={ingredient.name}
+				isDefaultChecked={false}
+				isDisabled={false}
+				onChange = {
+					(event) => handleIngredientToggle(ingredient, event.target.checked)
+				}
+			/>
+		</div>
+	);
 
-	const categoriesIntoLists = (category) => {
-		return (
-			<div key={category} className="mb-6">
-				<h3 className="text-xl font-bold">{category}</h3>
-				<div className="mt-2 flex flex-col gap-2">
-					{categorisedIngredients[category].map(ingredientsIntoCheckboxes)}
-				</div>
+	const categoriesIntoLists = (category) => (
+		<div key={category} className="mb-6">
+			<h3 className="text-xl font-bold">{category}</h3>
+			<div className="mt-2 flex flex-col gap-2">
+				{categorisedIngredients[category].map(ingredientsIntoCheckboxes)}
 			</div>
-		)
-	}
+		</div>
+	);
 
-	const handleSubmit = () => {
-		console.log("Form submitted");
-	} 
+	const handleSubmit = (event) => {
+		event.preventDefault();
+	};
 
 	return (
-		// <div>
-		// 	<h1 class="text-3xl font-bold underline">
-		// 		Recipes
-		// 	</h1>
-
-		// 	<div className="recipe-list">
-		// 		{recipes.map((recipe) => (
-		// 			<RecipeCard key={recipe.id} recipe={recipe} />
-		// 		))}
-		// 	</div>
-		// </div>
 		<form onSubmit={handleSubmit}>
 			<div>
 				{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
 			</div>
+
+			<div className="recipe-list mt-8">
+				{displayedRecipes.map((recipe) => (
+					<RecipeCard key={recipe.id} recipe={recipe} />
+				))}
+			</div>
 		</form>
-	)
+	);
 }
 
-export default App
+export default App;
