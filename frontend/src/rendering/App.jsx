@@ -9,6 +9,7 @@ function App() {
 	const [displayedRecipes, setDisplayedRecipes] = useState([]);
 	const [ingredients, setIngredients] = useState([]);
 	const [selectedIngredients, setSelectedIngredients] = useState([]);
+	const [selectedMode, setSelectedMode] = useState("all");
 
 	useEffect(() => {
 		const loadRecipes = async () => {
@@ -53,8 +54,8 @@ function App() {
 					},
 					body: JSON.stringify({
 						ingredients: selectedIngredients.map((ingredient) => ingredient.name),
-						mode: "all",
-						max_missing: 0,
+						mode: selectedMode,
+						max_missing: selectedMode === "best" ? 1 : 0,
 					}),
 				});
 
@@ -70,7 +71,7 @@ function App() {
 		};
 
 		fetchMatchingRecipes();
-	}, [recipes, selectedIngredients]);
+	}, [recipes, selectedIngredients, selectedMode]);
 
 	const categorisedIngredients = ingredients.reduce((acc, ingredient) => {
 		if (!acc[ingredient.category]) {
@@ -125,6 +126,20 @@ function App() {
 
 	return (
 		<form onSubmit={handleSubmit}>
+			<div className="mb-6">
+				<label htmlFor="response-mode" className="mr-3 font-semibold">Response mode:</label>
+				<select
+					id="response-mode"
+					value={selectedMode}
+					onChange={(event) => setSelectedMode(event.target.value)}
+					className="rounded border border-gray-300 px-2 py-1"
+				>
+					<option value="all">all</option>
+					<option value="any">any</option>
+					<option value="best">best</option>
+				</select>
+			</div>
+
 			<div>
 				{Object.keys(categorisedIngredients).map(categoriesIntoLists)}
 			</div>
