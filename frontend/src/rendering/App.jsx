@@ -3,6 +3,7 @@ import { useState, useEffect } from "react";
 import findItemList from "../utils/findItemList";
 import RecipeCard from "../components/ui/RecipeCard";
 import Checkbox from "../components/ui/Checkbox";
+import DropdownMenu from "../components/ui/DropdownMenu";
 
 function App() {
 	const [recipes, setRecipes] = useState([]);
@@ -150,32 +151,23 @@ function App() {
 	return (
 		<form onSubmit={handleSubmit}>
 			<div className="mb-6 flex items-center gap-4">
-				<label htmlFor="response-mode" className="mr-3 font-semibold">Response mode:</label>
-				<select
+				<DropdownMenu
 					id="response-mode"
+					label="Response mode:"
+					values={["all", "any", "best"]}
 					value={selectedMode}
 					onChange={handleModeChange}
-					className="rounded border border-gray-300 px-2 py-1"
-				>
-					<option value="all">all</option>
-					<option value="any">any</option>
-					<option value="best">best</option>
-				</select>
+				/>
 
 				{selectedMode === "best" && (
 					<>
-						<label htmlFor="max-missing" className="font-semibold">Max missing:</label>
-						<select
+						<DropdownMenu
 							id="max-missing"
+							label="Max missing:"
+							values={[0, 1, 2, 3]}
 							value={maxMissing}
 							onChange={handleMaxMissingChange}
-							className="rounded border border-gray-300 px-2 py-1"
-						>
-							<option value={0}>0</option>
-							<option value={1}>1</option>
-							<option value={2}>2</option>
-							<option value={3}>3</option>
-						</select>
+						/>
 					</>
 				)}
 			</div>
@@ -192,5 +184,6 @@ function App() {
 		</form>
 	);
 }
+
 
 export default App;
